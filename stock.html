@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<head>
+
+	<title>Stock Handler</title>
+	<meta charset='utf-8' />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+
+<style>
+
+#wrapper{
+	position:absolute;
+	left:0px;
+	right:0px;
+	top:0px;
+	bottom:0px;
+}
+
+#messageDimmer{
+	position:absolute;
+	left:0px;
+	right:0px;
+	top:0px;
+	bottom:0px;
+	background-color:rgba(0, 0, 0, 0.7);
+	display:none;
+	justify-content:center;
+	align-items:center;
+}
+
+#messageBox{
+	border:2px solid;
+	padding:20px;
+	background-color:#ffffff;
+	font-size:20px;
+	font-weight:bold;
+}
+
+#stockTable{
+	padding:50px;
+}
+
+th{
+	text-align:left;
+}
+
+td{
+	text-align:right;
+}
+
+input[type=number]{
+	text-align:right;
+} 
+
+</style>
+
+<body>
+	<div id="wrapper">
+		<div id="stockTable"></div>
+		<div id="messageDimmer"><div id="messageBox"></div></div>
+	</div>
+</body>
+
+<script>
+
+var stock=[];
+
+function showMessage(text){
+	messageBox.innerHTML=text;
+	messageDimmer.style.display='flex';
+}
+
+function hideMessage(){
+	messageDimmer.style.display='none';
+}
+
+function addStock(){
+
+	for (i=0;i<stock.length;i++) {
+		if (Number(newPID.value)==stock[i][0]) {
+			showMessage("PID not unique<br><br><button onclick='hideMessage()'>Got it</button>");
+			return(1);
+		}
+	}
+
+	showMessage("Uploading new item.<br>Please wait.");
+
+	var xhr = new XMLHttpRequest();
+	
+	xhr.open("POST", 'http://nile16.nu:1204/addstock', true);
+
+	xhr.onreadystatechange = function(){
+
+		if(this.readyState == 4 && this.status == 200) {
+
+			if (xhr.responseText=="ok"){
+				getStock();
+				printStock();
+				hideMessage();
+				}
+			if (xhr.responseText=="error"){
+				showMessage("The server responded with an error.<br><br><button onclick='hideMessage()'>Got it</button>");
+				}
+		}
+		if(this.readyState == 4 && this.status == 404) {
+			showMessage("Could not reach the server.<br><br><button onclick='hideMessage()'>Got it</button>");
+		}
+	}
+	xhr.send(JSON.stringify([newPID.value,newName.value,newDesc.value,newImg.value,newManu.value,newStock.value,newCost.value]));
+}
+
+function updateStock(i){
+
+	showMessage("Updating item.<br>Please wait.");
+
+	var xhr = new XMLHttpRequest();
+	
+	xhr.open("POST", 'http://nile16.nu:1204/updatestock', true);
+
+	xhr.onreadystatechange = function(){
+
+		if(this.readyState == 4 && this.status == 200) {
+
+			if (xhr.responseText=="ok"){
+				getStock();
+				printStock();
+				hideMessage();
+				}
+			if (xhr.responseText=="error"){
+				showMessage("The server responded with an error.<br><br><button onclick='hideMessage()'>Got it</button>");
+				}
+
+		}
+		if(this.readyState == 4 && this.status == 404) {
+			showMessage("Could not reach the server.<br><br><button onclick='hideMessage()'>Got it</button>");
+		}
+	}
+	xhr.send(JSON.stringify([stock[i][0],document.getElementById('a'+i).value,document.getElementById('b'+i).value,document.getElementById('c'+i).value,document.getElementById('d'+i).value,document.getElementById('e'+i).value,document.getElementById('f'+i).value]));
+}
+
+function removeStock(i){
+	if (stock[i][5]>0){
+		showMessage("Item still in stock<br><br><button onclick='hideMessage()'>Got it</button>");
+		return(1);
+	}
+	if (stock[i][5]<0){
+		showMessage("Item on back order<br><br><button onclick='hideMessage()'>Got it</button>");
+		return(1);
+	}
+	showMessage("Removing stock.<br>Please wait.");
+
+	// Create an instance of the XMLHttpRequset class. See http://www.w3schools.com/xml/xml_http.asp for info
+	var xhr = new XMLHttpRequest();
+	
+	// Specify POST request and the server's url
+	xhr.open("POST", 'http://nile16.nu:1204/removestock', true);
+
+	// Specify what will happen when a response from the server arrives
+	xhr.onreadystatechange = function(){
+
+		if(this.readyState == 4 && this.status == 200) {
+
+			if (xhr.responseText=="ok"){
+				getStock();
+				printStock();
+				hideMessage();
+				}
+			if (xhr.responseText=="error"){
+				showMessage("The server responded with an error.<br><br><button onclick='hideMessage()'>Got it</button>");
+				}
+
+		}
+		if(this.readyState == 4 && this.status == 404) {
+			showMessage("Could not reach the server.<br><br><button onclick='hideMessage()'>Got it</button>");
+		}
+	}
+	xhr.send(JSON.stringify(stock[i][0]));
+}
+
+function getStock(){
+
+	// Create an instance of the XMLHttpRequset class. See http://www.w3schools.com/xml/xml_http.asp for info
+	var xhr = new XMLHttpRequest();
+
+	// Specify POST request and the server's url
+	xhr.open("POST", 'http://nile16.nu:1204/search', true);
+
+	// Specify what will happen when a response from the server arrives
+	xhr.onreadystatechange = function(){
+
+		// If the status code is okay (200) then start print the result, otherwise do nothing (keep waiting)
+		if(this.readyState == 4 && this.status == 200) {
+
+			// The response text was sent as JSON from the server and this converts the JSON back to an array of arrays
+			stock=JSON.parse(xhr.responseText);
+			printStock();
+		}
+	}
+	xhr.send("");
+}
+
+
+function printStock(){
+
+	var table="<table style='width=90%'><tr><th>PID</th><th>Name</th><th>Description</th><th>imgname</th><th>Manufacture</th><th>In Stock</th><th>Adjust</th><th>Cost</th><th>Actions</th></tr>";
+	
+	for (i=0;i<stock.length;i++) {
+		table+='<tr><td>'+stock[i][0]+'</td>\
+		<td><input id="a'+i+'" type="text" size="16" value="'+stock[i][1]+'"></input></td>\
+		<td><input id="b'+i+'" type="text" size="80" value="'+stock[i][2]+'"></input></td>\
+		<td><input id="c'+i+'" type="text" size="12" value="'+stock[i][3]+'"></input></td>\
+		<td><input id="d'+i+'" type="text" size="12" value="'+stock[i][4]+'"></input></td>\
+		<td>'+stock[i][5]+'</td>\
+		<td><input id="e'+i+'" type="number" style="width:40px" value="0"></input></td>\
+		<td><input id="f'+i+'" type="text" size="10" value="'+stock[i][6]+'"></input></td>\
+		<td><button onclick="updateStock('+i+')">Update</button></td>\
+		<td><button onclick="removeStock('+i+')">X</button></td></tr>';
+	}
+	table+='<tr><td><input id="newPID" type="text" style="width:30px"></input></td>\
+	<td><input id="newName" type="text" size="16"></input></td>\
+	<td><input id="newDesc" type="text" size="80"></input></td>\
+	<td><input id="newImg" type="text" size="12"></input></td>\
+	<td><input id="newManu" type="text" size="12"></input></td>\
+	<td><input id="newStock" type="text" style="width:50px"></input></td>\
+	<td></td>\
+	<td><input id="newCost" type="text" style="width:70px"></input></td>\
+	<td colspan="2"><button onclick="addStock()" style="width:100%">Add New</button></td></tr>';
+	table+='</table>'
+	stockTable.innerHTML=table;
+}
+
+getStock();
+
+</script>
+
+</html>
