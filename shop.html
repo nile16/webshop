@@ -193,16 +193,12 @@ function placeOrder(user,passwd){
 		order.passwd=passwd;
 		order.list=cart;
 		
-		// Specify POST request and the server's url
 		xhr.open("POST", 'http://nile16.nu:1204/order', true);
 	
-		// Specify what will happen when a response from the server arrives
 		xhr.onreadystatechange = function(){
 	
-			// If the status code is okay (200) then start print the result, otherwise do nothing (keep waiting)
 			if(this.readyState == 4 && this.status == 200) {
 	
-				// The response text was sent as JSON from the server and this converts the JSON back to an array of arrays
 				if (xhr.responseText=="ok"){
 					showMessage("Your order has been received.<br><br><button onclick='hideMessage()'>Got it</button>");
 					cart=[];
@@ -214,7 +210,6 @@ function placeOrder(user,passwd){
 	
 			}
 		}
-		// Execute the request and send the order as argument
 		xhr.send(JSON.stringify(order));
 	}
 	else
