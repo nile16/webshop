@@ -23,6 +23,8 @@ def shop():
 
 @app.route('/getcustomers',methods = ['GET'])
 def getcustomers():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
     cursor.execute("SELECT customer_id,firstname,lastname,ssn,adress,city,email,phone,admin FROM Customer;")
@@ -45,6 +47,8 @@ def getcustomers():
 
 @app.route('/updatecustomer',methods = ['POST'])
 def updatecustomer():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     received_data=json.loads(request.get_data())
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
@@ -70,6 +74,8 @@ def order():
 
 @app.route('/addstock',methods = ['POST'])
 def addstock():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     received_data=json.loads(request.get_data())
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
@@ -80,6 +86,8 @@ def addstock():
 
 @app.route('/updatestock',methods = ['POST'])
 def updatestock():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     received_data=json.loads(request.get_data())
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
@@ -90,6 +98,8 @@ def updatestock():
 
 @app.route('/removestock',methods = ['POST'])
 def removestock():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     received_data=json.loads(request.get_data())
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
@@ -226,6 +236,8 @@ def admin():
 
 @app.route('/listorders')
 def listorders():
+    if ( ('logged_in' not in session) or session['logged_in']==False or session['admin']==False):
+        return("You do not have admin rights")
     db = MySQLdb.connect(host=config.get('main', 'host'), user=config.get('main', 'user'), passwd=config.get('main', 'passwd'), db='webshop', use_unicode=True, charset="utf8")
     cursor = db.cursor()
     cursor.execute("SELECT * FROM `Order` INNER JOIN `Customer` USING (customer_id) ORDER BY `time` DESC;")
